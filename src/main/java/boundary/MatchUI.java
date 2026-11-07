@@ -1,189 +1,89 @@
 package boundary;
 
+import java.util.InputMismatchException;
 import java.util.Scanner;
-import adt.ListInterface;
-import entity.Match;
-import entity.Student;
-import control.CompanyManager;
-import entity.JobPosting;
-import control.MatchingEngine;
-import control.JobManager;
-import control.ApplicantManager;
-import dao.CompanyInitializer;
-import dao.JobPostingInitializer;
-import dao.StudentInitializer;
+
 
 public class MatchUI {
+    private Scanner sc = new Scanner(System.in);
 
-    private MatchingEngine matchingEngine;
-    private CompanyManager companyManager;
-    private ApplicantManager applicantManager;
-    private JobManager jobManager;
-    private Scanner input = new Scanner(System.in);
-
-    public MatchUI(MatchingEngine matchingEngine, CompanyManager companyManager,
-            ApplicantManager applicantManager) {
-        this.matchingEngine = matchingEngine;
-        this.companyManager = companyManager;
-        this.applicantManager = applicantManager;
+    /** Prints the job search and match actions. */
+    private void matchMenu() {
+        System.out.println();
+        System.out.println();
+        System.out.println("Find Job Menu");
+        System.out.println("---------------------");
+        System.out.println("1. Search For Jobs");
+        System.out.println("2. View All Jobs");
+        System.out.println("3. Return To Applicant Profile Menu");
+        System.out.println("4. Change match score order");
+        System.out.println("5. Change company/job display order");
     }
 
-    public static void main(String[] args) {
-        // Initialize the managers and engine
-        MatchingEngine matchingEngine = new MatchingEngine();
-        CompanyManager companyManager = new CompanyManager();
-        ApplicantManager applicantManager = new ApplicantManager();
-        JobManager jobManager = new JobManager();
-
-        // Initialize sample data
-        JobPostingInitializer.initialize(jobManager);
-        StudentInitializer.initialize(applicantManager);
-        CompanyInitializer.initialize(companyManager);
-
-        // Create MatchUI instance
-        MatchUI matchUI = new MatchUI(matchingEngine, companyManager, applicantManager);
-        matchUI.run();
-    }
-
-    // Method to display student matches
-    public void displayStudentMatches() {
-        Student student = enterStudentId();
-
-        if (student != null) {
-            // get all jobs from company
-            matchingEngine.getAllJobsFromCompany(companyManager);
-            // search for type of job related
-            System.out.println("\nFinding job matches for " + student.getName() + "...");
-            matchingEngine.seachRelatedJobMatch();
-            // use match engine find the student score for all of the jobs
-            matchingEngine.calculateMatches(student);
-
-            // display all the scores which are high than 0.4
-            matchingEngine.displayScoresJobs();
-
-            System.out.println("\nEnter a job number to view details (0 to go back): ");
-
-            int selection = input.nextInt();
-            input.nextLine(); // Consume newline
-            matchingEngine.getMatchDetails(selection);
-            System.out.println("\nPress Enter to continue...");
-            input.nextLine();
-        } else {
-            System.out.println("Student ID not found. Please try again.");
-            return;
-        }
-
-    }
-
-    // Enter student
-    private Student enterStudentId() {
-        System.out.print("Enter your student ID: ");
-        String studentId = input.nextLine().trim();
-
-        // Find the student by ID
-        Student student = null;
-        student = applicantManager.getStudentEntity(studentId);
-        return student;
-    }
-
-    // Main method to control the flow of the program
-    public void run() {
-        int choice;
-        do {
-            displayMenu();
-            System.out.print("Enter your choice: ");
+    /** Displays the find-job menu and returns a choice from 1 to 5; consumes the rest of the line. */
+    public int matchMenuInput() {
+        matchMenu();
+        int choice = 0;
+        boolean flag = true;
+        while (flag) {
             try {
-                choice = input.nextInt();
-                input.nextLine(); // Consume newline
-
-                switch (choice) {
-                    case 1:
-                        displayStudentMatches(); // View student's job matches
-                        break;
-                    case 2:
-                        filterByMinimumScore(); // Filter student's matches by minimum score
-                        break;
-                    case 3:
-                        filterByJobLocation(); // Filter student's matches by location
-                        break;
-                    case 4:
-                        System.out.println("Exiting Job Matching System. Goodbye!"); // Exit
-                        break;
-                    default:
-                        System.out.println("Invalid choice. Please try again.");
+                System.out.print("Enter your choice: ");
+                choice = sc.nextInt();
+                if (choice < 1 || choice > 5) {
+                    System.out.println("Please enter a valid number.");
+                } else {
+                    flag = false;
                 }
-            } catch (Exception e) {
-                System.out.println("Invalid input. Please enter a number.");
-                input.nextLine();
-                choice = 0;
-            }
-        } while (choice != 4);
-        matchingEngine.clearJobsData();
-    }
-
-    // Display the menu options
-    private void displayMenu() {
-        System.out.println("\n===== STUDENT JOB MATCHING SYSTEM =====");
-        System.out.println("1. View your job matches");
-        System.out.println("2. Filter your matches by minimum score");
-        System.out.println("3. Filter your matches by job location");
-        System.out.println("4. View your profile details");
-        System.out.println("5. Exit");
-        System.out.println("=====================================");
-    }
-
-    // Filter student's matches by minimum score
-    public void filterByMinimumScore() {
-        Student student = enterStudentId();
-        if (student == null) {
-            System.out.println("Student ID not found. Please try again.");
-        } else {
-            boolean validNumber = true;
-            double minScore = 0;
-            do {
-
-                System.out.print("Enter minimum match score (0.0 - 1.0): ");
-
-                try {
-                    minScore = input.nextDouble();
-                    input.nextLine();
-
-                    if (minScore < 0 || minScore > 1) {
-                        System.out.println("Score must be between 0.0 and 1.0");
-                    }
-
-                } catch (Exception e) {
-                    System.out.println("Invalid input. Please enter a number between 0.0 and 1.0");
-                    input.nextLine();
-                }
-                validNumber = false;
-            } while (validNumber);
-
-            System.out.println("\n=========== FILTERED RESULTS (Score >= " + minScore + ") ===========\n");
-
-            if (!matchingEngine.displayFilterMinScore(minScore)) {
-                System.out.println("No matches found with score >= " + minScore);
+            } catch (InputMismatchException e) {
+                System.out.println("Invalid input. Please enter a valid number.");
+                sc.next(); // clear the invalid input
             }
         }
+        sc.nextLine();
+        return choice;
     }
 
-    // Filter student's matches by job location
-    public void filterByJobLocation() {
-        Student student = enterStudentId();
+    /** Prompts for sort direction and returns true for 1 (ascending) or false for 2 (descending). */
+    public boolean inputSortAscending() {
+        return SortUI.inputAscending(sc);
+    }
 
-        if (student == null) {
-            System.out.println("Student ID not found. Please try again.");
+    /** Prints the supplied match text. */
+    public void displayMatch(String info){
+        System.out.println(info);
+    }
 
-        } else {
+    /** Prompts for and returns the job title from the next line. */
+    public String inputJobTitle(){
+        System.out.print("Enter Job Title: ");
+        String jobTitle = sc.nextLine();
+        return jobTitle;
+    }
 
-            System.out.print("Enter job location to filter by: ");
-            String location = input.nextLine().trim().toLowerCase();
-
-            System.out.println("\n=========== FILTERED RESULTS (Location: " + location + ") ===========\n");
-
-            if (!matchingEngine.displayFilterLocation(location)) {
-                System.out.println("No matches found in location: " + location);
+    /** Returns the entered match number; -1 is shown as exit and -2 as change score order, and the rest of the line is consumed. */
+    public int inputMatchIndex(){
+        int choice = 0;
+        boolean flag = true;
+        while (flag) {
+            try {
+                System.out.println("Enter -1  to exit apply job.");
+                System.out.println("Enter -2 to change score sort order.");
+                System.out.print("Enter Match No To apply Job: ");
+                choice = sc.nextInt();
+                sc.nextLine();
+                flag = false;
+            } catch (InputMismatchException e) {
+                System.out.println("Invalid input. Please enter a valid number.");
+                sc.nextLine(); // clear the invalid input
             }
         }
+        return choice;
     }
+
+    /** Prompts for Enter and consumes the next input line. */
+    public void pressEnterToContinueMessage(){
+        System.out.print("Press enter to continue.");
+        sc.nextLine();
+    }
+
 }

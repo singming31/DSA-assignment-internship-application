@@ -1,166 +1,148 @@
 package control;
 
-import adt.ListInterface;
-import adt.ArrayList;
+import adt.*;
+import boundary.ApplicantProfileUI;
+import dao.StudentDAO;
 import entity.Student;
-import utility.SearchUtil;
 import entity.SkillProficiency;
+import utility.MessageUI;
+import utility.EntitySorting;
 
 public class ApplicantManager {
-    private ListInterface<Student> applicants = new ArrayList<>();
+    private ListInterface<Student> students = new ArrayList<>();
+    private final SkillProficiencyManager skillProficiencyManager = new SkillProficiencyManager(new ArrayList<>());
+    private final ApplicantProfileUI applicantProfileUI = new ApplicantProfileUI();
+    private int index = -1;
+    private final StudentDAO studentDAO = new StudentDAO();
+    private MatchingEngine matchingEngine;
+    private InterviewSchedulerManager interviewSchedulerManager;
 
-    private ListInterface<SkillProficiency> skills = new ArrayList<>();
 
-    public void registerStudent(Student student) {
-        applicants.add(student);
+    /** Loads saved students and sorts them. */
+    public ApplicantManager() {
+        students = studentDAO.retrieveFromFile();
+        EntitySorting.sortStudents(students);
     }
 
-    public void clearSkillProficiencies() {
-        skills.clear();
-    }
-
-    public void addSkillProficiency(String skillname, int experience) {
-        skills.add(new SkillProficiency(skillname, experience));
-    }
-
-    public ListInterface<SkillProficiency> getSkillProficiencies() {
-        ListInterface<SkillProficiency> skillProficiencies = new ArrayList<>();
-        for (int i = 0; i < skills.size(); i++) {
-            skillProficiencies.add(skills.get(i));
-        }
-        clearSkillProficiencies();
-        return skillProficiencies;
-    }
-
-    public boolean getStudentById(String id) {
-        for (int i = 0; i < applicants.size(); i++) {
-            if (applicants.get(i).getId().equals(id)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public Student getStudentEntity(String id) {
-        for (int i = 0; i < applicants.size(); i++) {
-            if (applicants.get(i).getId().equals(id)) {
-                return applicants.get(i);
-            }
-        }
-        return null;
-    }
-
-    public void registerStudent(String name, String location, int experience) {
-        applicants.add(new Student(name, getSkillProficiencies(), location, experience));
-    }
-
-    public boolean removeStudentById(String id) {
-        for (int i = 0; i < applicants.size(); i++) {
-            if (applicants.get(i).getId().equals(id)) {
-                applicants.remove(i + 1);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public void updateStudentName(String id, String name) {
-        for (int i = 0; i < applicants.size(); i++) {
-            if (applicants.get(i).getId().equals(id)) {
-                applicants.get(i).setName(name);
-            }
-        }
-    }
-
-    public void updateStudentLocation(String id, String location) {
-        for (int i = 0; i < applicants.size(); i++) {
-            if (applicants.get(i).getId().equals(id)) {
-                applicants.get(i).setLocation(location);
-            }
-        }
-    }
-
-    public void updateStudentExperience(String id, int experience) {
-        for (int i = 0; i < applicants.size(); i++) {
-            if (applicants.get(i).getId().equals(id)) {
-                applicants.get(i).setExperience(experience);
-            }
-        }
-    }
-
-    public void updateStudentSkills(String id, ListInterface<SkillProficiency> skills) {
-        for (int i = 0; i < applicants.size(); i++) {
-            if (applicants.get(i).getId().equals(id)) {
-                applicants.get(i).setSkills(skills);
-            }
-        }
-    }
-
-    public String listSpecificApplicants(String id) {
-        // view student with specific id
-        for (int i = 0; i < applicants.size(); i++) {
-            if (applicants.get(i).getId().equals(id)) {
-                return applicants.get(i).toString();
-            }
-        }
-        return null;
-    }
-
-    public String filterByExperience(int minExperience) {
-        StringBuilder result = new StringBuilder();
-        boolean found = false;
-
-        for (int i = 0; i < applicants.size(); i++) {
-            Student student = applicants.get(i);
-            if (student.getExperience() >= minExperience) {
-                result.append(student.toString()).append("\n");
-                found = true;
-            }
-        }
-
-        return found ? result.toString() : "No applicants found with experience >= " + minExperience + " years.";
-    }
-
-    public String searchByLocation(String location) {
-        StringBuilder result = new StringBuilder();
-        boolean found = false;
-
-        for (int i = 0; i < applicants.size(); i++) {
-            Student student = applicants.get(i);
-            String[] words = student.getLocation().toLowerCase().split("\\s+");
-            for (String word : words) {
-                if (SearchUtil.fuzzySearch(word, location.toLowerCase(), 2)) {
-                    result.append(student.toString()).append("\n");
-                    found = true;
-                    break;
+    /** Runs the login and registration menu until choice 3, then saves the student list. */
+    public void runApplicantProfile() {
+        int choice = 0;
+        do {
+            choice = applicantProfileUI.getMenuChoiceLogin();
+            switch (choice) {
+                case 1 -> login();
+                case 2 -> signUp();
+                case 3 -> {
+                    MessageUI.displayLogOutMessage();
                 }
             }
-        }
-
-        return found ? result.toString() : "No applicants found in location: " + location;
+        } while (choice != 3);
+        studentDAO.saveToFile(students);
     }
 
-    public String searchByName(String name) {
-        StringBuilder result = new StringBuilder();
-        boolean found = false;
-
-        for (int i = 0; i < applicants.size(); i++) {
-            Student student = applicants.get(i);
-            if (SearchUtil.fuzzySearch(student.getName().toLowerCase(), name.toLowerCase(), 3)) {
-                result.append(student.toString()).append("\n");
-                found = true;
+    /** Finds an account by ID only and runs its profile menu until logout or confirmed deletion. Profile edits are saved when the outer menu exits. */
+    public void login() {
+        index = -1;
+        EntitySorting.sortStudents(students, true);
+        String id = applicantProfileUI.inputApplicantId();
+        for (int i = 0; i < students.size(); i++) {
+            if (id.equals(students.get(i).getId())) {
+                index = i;
+                break;
             }
         }
+        if (index != -1) {
+            int choice = 0;
+            do {
+                choice = applicantProfileUI.getMenuChoice();
+                switch (choice) {
+                    case 1:
+                        applicantProfileUI.listStudentInfo(displayStudentInfo(students.get(index)));
+                        break;
+                    case 2:
+                        // update
+                        int updateChoice = applicantProfileUI.getUpdateMenuChoice();
+                        switch (updateChoice) {
+                            case 1 -> {
+                                String name = applicantProfileUI.inputApplicantName();
+                                students.get(index).setName(name);
+                        }
+                            case 2 -> {
+                                int experience = applicantProfileUI.inputApplicantWorkingExperience();
+                                students.get(index).setExperience(experience);
+                        }
+                            case 3 -> {
+                                String location = applicantProfileUI.inputApplicantLocation();
+                                students.get(index).setLocation(location);
+                        }
+                            case 4 -> {
+                                skillProficiencyManager
+                                        .runSkillProficiency(students.get(index).getSkillProficiencies());
+                                ListInterface<SkillProficiency> skills = skillProficiencyManager.getSkillProficiencys();
+                                students.get(index).setSkills(skills);
+                        }
+                            default -> MessageUI.displayInvalidChoiceMessage();
+                        }
+                        applicantProfileUI.listStudentInfo(displayStudentInfo(students.get(index)));
+                        break;
 
-        return found ? result.toString() : "No applicants found matching name: " + name;
+
+                    case 4:
+                        matchingEngine = new MatchingEngine();
+                        matchingEngine.runLookForJobs(students.get(index));
+                        break;
+                    case 5:
+                        // schedule
+                        matchingEngine = new MatchingEngine();
+                        interviewSchedulerManager = new InterviewSchedulerManager(matchingEngine);
+                        interviewSchedulerManager.runInterviewScheduler(students.get(index).getId());
+                        break;
+                    case 3:
+                        // delete
+                        String choiceDelete = applicantProfileUI.comfimationDelete();
+                        if (!choiceDelete.equals("y")) {
+                            break;
+                        }
+                        choice = 6;
+                        students.remove(index + 1);
+                        MessageUI.displayDeleteApplicantAccountMessage();
+                    case 6:
+                        MessageUI.displayLogOutMessage();
+                        index = -1;
+                        break;
+                    default:
+                        MessageUI.displayInvalidChoiceMessage();
+                }
+            } while (choice != 6);
+        }
     }
 
-    public ListInterface<Student> getApplicants() {
-        ListInterface<Student> copy = new ArrayList<>();
-        for (int i = 0; i < applicants.size(); i++) {
-            copy.add(applicants.get(i));
-        }
-        return copy;
+    /** Collects a student profile and skills, adds it to the in-memory list, and displays it. */
+    public void signUp() {
+        String name = applicantProfileUI.inputApplicantName();
+        String location = applicantProfileUI.inputApplicantLocation();
+        int experience = applicantProfileUI.inputApplicantWorkingExperience();
+        skillProficiencyManager.runSkillProficiency();
+        ListInterface<SkillProficiency> skills = skillProficiencyManager.getSkillProficiencys();
+        Student student = new Student(name, skills, location, experience);
+
+        applicantProfileUI.listStudentInfo(displayStudentInfo(student));
+        students.add(student);
+        EntitySorting.sortStudents(students, true);
+        applicantProfileUI.displayEnterToContinueMessage();
+    }
+
+    /** Formats the student using its string representation. */
+    private String displayStudentInfo(Student student) {
+        String result = "";
+        result += student.toString();
+        return result;
+    }
+
+    /** Starts the applicant profile menu. */
+    public static void main(String[] args) {
+        ApplicantManager applicantManager = new ApplicantManager();
+        applicantManager.runApplicantProfile();
     }
 
 }

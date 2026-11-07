@@ -2,299 +2,185 @@ package boundary;
 
 import java.util.InputMismatchException;
 import java.util.Scanner;
-import adt.ListInterface;
-import control.ApplicantManager;
-import dao.StudentInitializer;
-import entity.Student;
 
 public class ApplicantProfileUI {
-    private ApplicantManager applicantManager = new ApplicantManager();
-    private Scanner input = new Scanner(System.in);
 
-    // Main method
-    public static void main(String[] args) {
-        ApplicantProfileUI applicantProfileUI = new ApplicantProfileUI();
-        applicantProfileUI.run();
+    private Scanner sc = new Scanner(System.in);
+
+    /** Prints the applicant sign-in, sign-up, and return options. */
+    private void applicantMenuLogin() {
+        System.out.println();
+        System.out.println();
+        System.out.println("---------------------");
+        System.out.println("Applicant Profile Menu");
+        System.out.println("---------------------");
+        System.out.println("1. Log In");
+        System.out.println("2. Sign Up");
+        System.out.println("3. Return To Main Menu");
     }
 
-    // Constructor
-    public ApplicantProfileUI() {
-        // Sample student data
-        StudentInitializer.initialize(applicantManager);
-        System.out.println("Application initialized with sample student data.");
-    }
-
-    // Display menu
-    public void displayMenu() {
-        System.out.println("\n\n\nApplicant Profile Management:");
-        System.out.println("1. Create Applicant Profile");
-        System.out.println("2. View Applicant Profile");
-        System.out.println("3. Update Applicant Profile");
-        System.out.println("4. Delete Applicant Profile");
-        System.out.println("5. Filter Applicant Profiles");
-        System.out.println("6. Get All Applicants");
-        System.out.println("7. Exit");
-        System.out.print("Enter your choice: ");
-    }
-
-    // Main menu
-    public void run() {
-        int choice;
-        do {
-            displayMenu();
-            choice = input.nextInt();
-            switch (choice) {
-                case 1:
-                    createApplicantProfile();
-                    break;
-                case 2:
-                    viewApplicantProfile();
-                    break;
-                case 3:
-                    updateApplicantProfile();
-                    break;
-                case 4:
-                    deleteApplicantProfile();
-                    break;
-                case 5:
-                    filterApplicantProfiles();
-                    break;
-                case 6:
-                    getAllApplicants();
-                    break;
-                case 7:
-                    System.out.println("Exiting Applicant Profile Management!");
-                    break;
-                default:
-                    System.out.println("Invalid choice. Please try again.");
-            }
-        } while (choice != 7);
-    }
-
-    // Method to get all applicants
-    public void getAllApplicants() {
-        System.out.println("\nAll Applicant Profiles:");
-        ListInterface<Student> allApplicants = applicantManager.getApplicants(); // Assuming you have a method that
-                                                                                 // returns all applicants as a string
-        if (allApplicants != null && !allApplicants.isEmpty()) {
-            System.out.println(allApplicants);
-        } else {
-            System.out.println("No applicants available.");
-        }
-    }
-
-    // Method to view a specific student
-    public void viewApplicantProfile() {
-        input.nextLine(); // clear buffer
-        System.out.print("Enter the ID of the student to view: ");
-        String studentId = input.nextLine();
-        String student = applicantManager.listSpecificApplicants(studentId);
-        if (student != null) {
-            System.out.println("\n========== YOUR PROFILE DETAILS ==========");
-            System.out.println(student);
-        } else {
-            System.out.println("Student not found!");
-        }
-    }
-
-    // Method to get user name
-    public String getInputStudentName() {
-        System.out.print("Enter student name: ");
-        return input.nextLine();
-    }
-
-    // Method to get user location
-    public String getInputStudentLocation() {
-        System.out.print("Enter student location: ");
-        return input.nextLine();
-    }
-
-    // Method to get user experience
-    public int getInputStudentExperience() {
-        int experience = 0;
-        boolean isValid = true;
-        while (isValid) {
-            System.out.print("Enter student working year experience: ");
+    /** Displays the login menu and returns a choice from 1 to 3; consumes the rest of the input line. */
+    public int getMenuChoiceLogin() {
+        applicantMenuLogin();
+        int choice = 0;
+        boolean flag = true;
+        while (flag) {
             try {
-                experience = input.nextInt();
-                if (experience < 0) {
-                    System.out.println("Experience must be 0 or above.");
+                System.out.print("Enter your choice: ");
+                choice = sc.nextInt();
+                if (choice < 1 || choice > 3) {
+                    System.out.println("Please enter a valid number.");
                 } else {
-                    isValid = false;
+                    flag = false;
                 }
             } catch (InputMismatchException e) {
-                System.out.println("Experience years of working must be a number.");
+                System.out.println("Invalid input. Please enter a valid number.");
+                sc.next(); // clear the invalid input
             }
-            input.nextLine(); // clear buffer
         }
-        return experience;
+        sc.nextLine();
+        return choice;
     }
 
-    // Method to get user skills
-    public void getInputSkills() {
-        boolean isValid = true;
-        int numSkills = 0;
-        do {
+    /** Prints the applicant profile actions. */
+    private void applicantMenu() {
+        System.out.println();
+        System.out.println();
+        System.out.println("---------------------");
+        System.out.println("Applicant Profile Menu");
+        System.out.println("---------------------");
+        System.out.println("1. View Profile");
+        System.out.println("2. Update Profile");
+        System.out.println("3. Delete Profile");
+        System.out.println("4. Find Job");
+        System.out.println("5. ManageInterview");
+        System.out.println("6. Log out");
+    }
+
+    /** Prints the applicant profile update actions. */
+    private void updateMenu() {
+        System.out.println();
+        System.out.println();
+        System.out.println("---------------------");
+        System.out.println("Update Menu");
+        System.out.println("---------------------");
+        System.out.println("1. Update Name");
+        System.out.println("2. Update Working Experience");
+        System.out.println("3. Update Location");
+        System.out.println("4. Update Skills Proficiency");
+        System.out.println("5. Return To Applicant Profile Menu");
+
+    }
+
+    /** Displays the update menu and returns a choice from 1 to 5; consumes the rest of the input line. */
+    public int getUpdateMenuChoice() {
+        updateMenu();
+        int choice = 0;
+        boolean flag = true;
+        while (flag) {
             try {
-                System.out.print("Enter how many skills you are proficient in: ");
-                numSkills = input.nextInt();
-                if (numSkills <= 0) {
-                    System.out.println("Invalid input. Please enter a positive integer: ");
+                System.out.print("Enter your choice: ");
+                choice = sc.nextInt();
+                if (choice < 1 || choice > 5) {
+                    System.out.println("Please enter a valid number.");
                 } else {
-                    isValid = false;
+                    flag = false;
                 }
-
             } catch (InputMismatchException e) {
-                System.out.println("Invalid input. Please enter a positive integer: ");
-                input.nextLine(); // consume invalid input
+                System.out.println("Invalid input. Please enter a valid number.");
+                sc.next(); // clear the invalid input
             }
-            input.nextLine(); // consume newline left-over
-            for (int i = 0; i < numSkills; i++) {
-                System.out.print("Enter skill " + (i + 1) + " name : ");
-                String skill = input.nextLine();
-                System.out.print("Enter proficiency of skill " + (i + 1) + " (1-10): ");
-                int experience = 0;
-                boolean isValidImportance = true;
-                do {
-                    try {
-                        experience = input.nextInt();
-                        if (experience < 1 || experience > 10) {
-                            System.out.print("Invalid input. Please enter an integer between 1 and 10: ");
-                        } else {
-                            isValidImportance = false;
-                        }
-                    } catch (InputMismatchException e) {
-                        System.out.print("Invalid input. Please enter an integer between 1 and 10: ");
-                        input.nextLine(); // consume invalid input
-                    }
-                } while (isValidImportance);
-                input.nextLine(); // consume newline left-over
-                applicantManager.addSkillProficiency(skill, experience);
+        }
+        sc.nextLine();
+        return choice;
+    }
+
+    /** Displays the applicant menu and returns a choice from 1 to 6; consumes the rest of the input line. */
+    public int getMenuChoice() {
+        applicantMenu();
+        int choice = 0;
+        boolean flag = true;
+        while (flag) {
+            try {
+                System.out.print("Enter your choice: ");
+                choice = sc.nextInt();
+                if (choice < 1 || choice > 6) {
+                    System.out.println("Please enter a valid number.");
+                } else {
+                    flag = false;
+                }
+            } catch (InputMismatchException e) {
+                System.out.println("Invalid input. Please enter a valid number.");
+                sc.next(); // clear the invalid input
             }
-        } while (isValid);
-    }
-
-    // Method to create a new student
-    public void createApplicantProfile() {
-        String name, location;
-        int experience;
-        input.nextLine(); // clear buffer
-
-        name = getInputStudentName();
-        location = getInputStudentLocation();
-        experience = getInputStudentExperience();
-        getInputSkills();
-        applicantManager.registerStudent(name, location, experience);
-
-        System.out.println("Applicant profile created successfully!");
-    }
-
-    // Method to update a student menu
-    private void updateAppMenu() {
-        System.out.println("\n\n\nUpdate Applicant Profile Menu:");
-        System.out.println("1. Update Student Name");
-        System.out.println("2. Update Student Location");
-        System.out.println("3. Update Student Working Year Experience");
-        System.out.println("4. Update Student Skills");
-        System.out.println("5. Exit");
-    }
-
-    // Method to update a student
-    private void updateApp(String id) {
-
-        updateAppMenu();
-        input.nextLine(); // clear buffer
-        int choice = input.nextInt();
-        switch (choice) {
-            case 1:
-                String name = getInputStudentName();
-                applicantManager.updateStudentName(id, name);
-                break;
-            case 2:
-                String location = getInputStudentLocation();
-                applicantManager.updateStudentLocation(id, location);
-                break;
-            case 3:
-                int experience = getInputStudentExperience();
-                applicantManager.updateStudentExperience(id, experience);
-                break;
-            case 4:
-                getInputSkills();
-                applicantManager.updateStudentSkills(id, applicantManager.getSkillProficiencies());
-                applicantManager.clearSkillProficiencies();
-                break;
-            case 5:
-                System.out.println("Exiting update menu.");
-
         }
+        sc.nextLine();
+        return choice;
     }
 
-    // Method to update a student verify exists
-    public void updateApplicantProfile() {
-        input.nextLine(); // clear buffer
-        System.out.print("Enter the ID of the student to update: ");
-        String id = input.nextLine();
-        boolean exists = applicantManager.getStudentById(id);
-
-        if (exists) {
-            System.out.println("Updating student with ID: " + id);
-            updateApp(id);
-        } else {
-            System.out.println("Student not found!");
-        }
+    /** Prompts for and returns the applicant name from the next line. */
+    public String inputApplicantName() {
+        System.out.print("Enter Applicant Name: ");
+        String applicantName = sc.nextLine();
+        return applicantName;
     }
 
-    // Method to delete a student
-    public void deleteApplicantProfile() {
-        input.nextLine(); // clear buffer
-        System.out.print("Enter the ID of the student to delete: ");
-        String id = input.nextLine();
-        boolean deleted = applicantManager.removeStudentById(id);
-        if (deleted) {
-            System.out.println("Student deleted successfully!");
-        } else {
-            System.out.println("Student not found!");
-        }
-    }
-
-    // Method to filter applicants
-    public void filterApplicantProfiles() {
-        int choice;
-        do {
-            System.out.println("\nFilter Applicant Profiles By:");
-            System.out.println("1. Search Name");
-            System.out.println("2. Search Location");
-            System.out.println("3. Minimum Years of Experience");
-            System.out.println("4. Exit");
-            System.out.print("Enter your choice: ");
-
-            choice = input.nextInt();
-            input.nextLine(); // clear buffer
-
-            switch (choice) {
-                case 1:
-                    System.out.print("Enter name to search: ");
-                    String name = input.nextLine();
-                    System.out.println(applicantManager.searchByName(name));
-                    break;
-                case 2:
-                    System.out.print("Enter location to search: ");
-                    String location = input.nextLine();
-                    System.out.println(applicantManager.searchByLocation(location));
-                    break;
-                case 3:
-                    System.out.print("Enter minimum years of experience: ");
-                    int minExp = input.nextInt();
-                    input.nextLine(); // clear buffer
-                    System.out.println(applicantManager.filterByExperience(minExp));
-                    break;
-                case 4:
-                    System.out.println("Returning to main menu...");
-                    break;
-                default:
-                    System.out.println("Invalid choice. Please try again.");
+    /** Reads a non-negative integer, consumes the rest of its line, and returns it. */
+    public int inputApplicantWorkingExperience() {
+        int workingExperience = 0;
+        boolean flag = true;
+        while (flag) {
+            try {
+                System.out.print("Enter your Working Experience: ");
+                workingExperience = sc.nextInt();
+                if (workingExperience < 0) {
+                    System.out.println("Please enter a valid number.");
+                } else {
+                    flag = false;
+                }
+            } catch (InputMismatchException e) {
+                System.out.println("Invalid input. Please enter a valid number.");
+                sc.next(); // clear the invalid input
             }
-        } while (choice != 4);
+        }
+        sc.nextLine();
+        return workingExperience;
+    }
+
+    /** Prompts for and returns the applicant location from the next line. */
+    public String inputApplicantLocation() {
+        System.out.print("Enter Applicant Location: ");
+        String applicantLocation = sc.nextLine();
+        return applicantLocation;
+    }
+
+    /** Prompts for and returns the applicant ID from the next line. */
+    public String inputApplicantId() {
+        System.out.print("Enter Applicant ID: ");
+        String applicantId = sc.nextLine();
+        return applicantId;
+    }
+
+    /** Prompts for deletion confirmation and returns the entered line without interpreting it. */
+    public String comfimationDelete() {
+        System.out.print("Are you sure you want to delete this profile? (y/n):");
+        String choice = sc.nextLine();
+        return choice;
+    }
+
+    /** Prints student table headings and the supplied rows. */
+    public void listStudentInfo(String info) {
+        String header = String.format("+---------------+---------------+---------------+---------------+\n");
+        header += String.format("|%15s|%15s|%15s|%15s|\n", "ID", "Name", "Location", "Experience");
+        header += String.format("+---------------+---------------+---------------+---------------+");
+        System.out.println(header);
+        System.out.println(info);
+    }
+
+    /** Prompts for Enter and consumes the next input line. */
+    public void displayEnterToContinueMessage() {
+        System.out.println("\nPress Enter to continue...");
+        sc.nextLine();
     }
 
 }

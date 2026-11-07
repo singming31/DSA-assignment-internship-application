@@ -1,181 +1,198 @@
 package boundary;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.InputMismatchException;
 import java.util.Scanner;
-
-import adt.ListInterface;
-import control.ApplicantManager;
-import control.CompanyManager;
-import control.InterviewSchedulerManager;
-import control.JobManager;
-import control.MatchingEngine;
-import entity.Company;
-import entity.Match;
-import entity.Student;
+/**
+ *
+ * @author Teoh Yu Xiang
+ */
 
 public class InterviewUI {
-    private InterviewSchedulerManager interviews;
-    private MatchingEngine matchingEngines;
-    private CompanyManager companyManagers;
-    private JobManager jobManagers;
-    private ApplicantManager applicantManagers;
-    private Scanner input = new Scanner(System.in);
 
-    // TODO: as student accept or reject interview
+    private Scanner scanner = new Scanner(System.in);
+    private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
-    // TODO: company schedule interview
-    public static void main(String[] args) {
-        MatchingEngine matchingEngine = new MatchingEngine();
-        CompanyManager companyManager = new CompanyManager();
-        ApplicantManager applicantManager = new ApplicantManager();
-        JobManager jobManager = new JobManager();
-
-        // Initialize sample data
-
-        // Create InterviewUI instance
-        InterviewUI interviewUI = new InterviewUI();
-        interviewUI.run();
-
+    /** Prints the company interview actions. */
+    private void displayInterviewMenu() {
+        System.out.println("Interview Menu");
+        System.out.println("---------------");
+        System.out.println("1. Shedule Interview for a Job Posting");
+        System.out.println("2. Return To Company Menu");
+        System.out.println("3. Change interview date order");
     }
 
-    private void displayMenuLogin() {
-        System.out.println("\n=== INTERVIEW SCHEDULING SYSTEM ===");
-        System.out.println("1. Login as Student");
-        System.out.println("2. Login as Company");
-        System.out.println("3. Exit");
-        System.out.println("=====================================");
-    }
-
-    private String getInputId() {
-        System.out.print("Enter ID: ");
-        return input.nextLine();
-    }
-
-    public void run() {
-        int choice;
-        do {
-            displayMenuLogin();
-            choice = getUserChoice();
-            handleMainChoice(choice);
-
-        } while (choice != 3);
-
-    }
-
-    private void handleMainChoice(int choice) {
-        input.nextLine(); // clear buffer
-        String id = getInputId();
-        switch (choice) {
-            case 1 -> loginAsCompany(id);
-            case 2 -> loginAsStudent(id);
-            case 3 -> System.out.println("INTERVIEW SCHEDULING SYSTEM. Goodbye!");
-            default -> System.out.println("Invalid choice. Please try again.");
-        }
-    }
-
-    private String enterId() {
-        return prompt("Enter ID: ");
-    }
-
-    private void loginAsCompany(String id) {
-        Company company = companyManagers.getCompanyById(id);
-        if (company != null) {
-            System.out.println("Login successful!");
-            runMainCompany(company);
-        } else {
-            System.out.println("Company not found.");
-        }
-
-    }
-
-    private void displayMenuCompany() {
-        System.out.println("\n=== INTERVIEW SCHEDULING SYSTEM ===");
-        System.out.println("1. Schedule Interview");
-        System.out.println("2. View Scheduled Interviews");
-    }
-
-    private void runMainCompany(Company company) {
-        displayMenuCompany();
-        int choice = getUserChoice();
-        do {
-            switch (choice) {
-                case 1 -> scheduleInterview(company);
-                case 2 -> viewScheduledInterviews(company);
+    /** Displays the company interview menu and returns a choice from 1 to 3; invalid tokens are discarded by line. */
+    public int displayInterviewMenuOptions() {
+        displayInterviewMenu();
+        int choice = 0;
+        boolean flag = true;
+        while (flag) {
+            try {
+                System.out.print("Enter your choice: ");
+                choice = scanner.nextInt();
+                if (choice < 1 || choice > 3) {
+                    System.out.println("Please enter a valid choice between 1 and 3.");
+                } else {
+                    flag = false;
+                }
+            } catch (InputMismatchException e) {
+                System.out.println("Invalid input. Please enter a valid number.");
+                scanner.nextLine(); // clear the invalid input
             }
-        } while (choice != 3);
-    }
-
-    public void scheduleInterview(Company company) {
-        interviews.scheduleInterview(company, matchingEngines);
-        System.out.println("=== Interviews Scheduled ===");
-        setAllInterviewsInformation();
-    }
-
-    public void setAllInterviewsInformation() {
-
-        do {
-            interviews.setAllInterviewsInformation();
-
-        } while (!interviews.interviewAllScheduled());
-    }
-
-    public void viewScheduledInterviews(Company company) {
-        interviews.displayAllInterviews(company);
-    }
-
-    private void loginAsStudent(String id) {
-        Student student = applicantManagers.getStudentEntity(id);
-        if (student != null) {
-            System.out.println("Login successful!");
-            runMainStudent(student);
-        } else {
-            System.out.println("Company not found.");
         }
+        return choice;
     }
 
-    private void displayMenuStudent() {
-        System.out.println("\n=== INTERVIEW SCHEDULING SYSTEM ===");
-        System.out.println("1. Accept or Reject Interview");
-        System.out.println("2. View Scheduled Interviews");
-        System.out.println("3. Exit");
+    /** Prints the student interview actions. */
+    private void displayInterviewMenuStudent(){
+        System.out.println("");
+        System.out.println("");
+        System.out.println("Interview Menu");
+        System.out.println("---------------");
+        System.out.println("1. View Interviews");
+        System.out.println("2. Return To Student Menu");
+        System.out.println("3. Change interview date order");
     }
 
-    private void runMainStudent(Student student) {
-        displayMenuStudent();
-        int choice = getUserChoice();
-        do {
-            switch (choice) {
-                case 1 -> acceptOrRejectInterview(student);
-                case 2 -> viewScheduledInterviewsStudent(student);
+    /** Displays the student interview menu and returns a choice from 1 to 3; invalid tokens are discarded by line. */
+    public int displayInterviewMenuStudentOptions() {
+        displayInterviewMenuStudent();
+        int choice = 0;
+        boolean flag = true;
+        while (flag) {
+            try {
+                System.out.print("Enter your choice: ");
+                choice = scanner.nextInt();
+                if (choice < 1 || choice > 3) {
+                    System.out.println("Please enter a valid choice between 1 and 3.");
+                } else {
+                    flag = false;
+                }
+            } catch (InputMismatchException e) {
+                System.out.println("Invalid input. Please enter a valid number.");
+                scanner.nextLine(); // clear the invalid input
             }
-        } while (choice != 3);
-    }
-
-    public void acceptOrRejectInterview(Student student) {
-
-        System.out.println("Accept or Reject Interview");
-        System.out.print("Enter Interview ID: ");
-        String interviewId = input.nextLine();
-        System.out.println("1. Accept");
-        System.out.println("2. Reject");
-
-    }
-
-    public void viewScheduledInterviewsStudent(Student student) {
-        interviews.displayAllInterviews(student);
-    }
-
-    private int getUserChoice() {
-        while (!input.hasNextInt()) {
-            System.out.print("Invalid input. Please enter a number: ");
-            input.next();
         }
-        return input.nextInt();
+        return choice;
     }
 
-    // Method to get user input
-    private String prompt(String message) {
-        System.out.print(message);
-        return input.nextLine();
+
+    /** Prompts for sort direction and returns true for 1 (ascending) or false for 2 (descending). */
+    public boolean inputSortAscending() {
+        return SortUI.inputAscending(scanner);
     }
 
+    /** Prints the supplied interview text. */
+    public void displayInterview(String info) {
+        System.out.println(info);
+    }
+
+    /** Prints job rows and returns the entered integer selection; 0 is shown as the exit choice and the rest of the line is consumed. */
+    public int displayJobs(String info) {
+        // see wan add header anot
+        System.out.println(info);
+        int choice = 0;
+        boolean flag = true;
+        while (flag) {
+            try {
+                System.out.println("Enter 0 to exit.");
+                System.out.print("Enter number of job to schedule interview: ");
+                choice = scanner.nextInt();
+                flag = false;
+            } catch (InputMismatchException e) {
+                System.out.println("Invalid input. Please enter a valid number.");
+                scanner.nextLine(); // clear the invalid input
+            }
+        }
+        scanner.nextLine();
+        return choice;
+    }
+
+    /** Reads yyyy-MM-dd HH:mm and repeats until parsing succeeds and the time is not before now. */
+    public LocalDateTime getInterviewDateAndTime() {
+        // get date and time
+        LocalDateTime dateTime = null;
+        while (dateTime == null) {
+            System.out.print("Enter interview date and time (yyyy-MM-dd HH:mm): ");
+            String dateTimeStr = scanner.nextLine().trim();
+            try {
+                dateTime = LocalDateTime.parse(dateTimeStr, dateFormatter);
+                if (dateTime.isBefore(LocalDateTime.now())) {
+                    System.out.println("Cannot schedule interviews in the past. Please enter a future date and time.");
+                    dateTime = null;
+                }
+            } catch (DateTimeParseException e) {
+                System.out.println("Invalid date/time format. Please use yyyy-MM-dd HH:mm format.");
+            }
+        }
+        return dateTime;
+    }
+
+    /** Returns 1 for reject or 2 for accept, repeating until one of those choices is entered. */
+    public int acceptApplicant() {
+        int choice = 0;
+        boolean flag = true;
+        while (flag) {
+            try {
+                System.out.println("1. Reject Applicant");
+                System.out.println("2. Accept");
+                System.out.print("Enter your choice: ");
+                choice = scanner.nextInt();
+                if (choice < 1 || choice > 2) {
+                    System.out.println("Please enter a valid choice between 1 and 2.");
+                } else {
+                    flag = false;
+                }
+            } catch (InputMismatchException e) {
+                System.out.println("Invalid input. Please enter a valid number.");
+                scanner.nextLine(); // clear the invalid input
+            }
+        }
+        return choice;
+    }
+
+    /** Returns the entered interview number; 0 is shown as exit, but other values are not range-checked. */
+    public int inputSelectedInterview(){
+        int choice = 0;
+        boolean flag = true;
+        while (flag) {
+            try {
+                System.out.println("Enter 0 to exit.");
+                System.out.print("Enter the number of interview: ");
+                choice = scanner.nextInt();
+                flag = false;
+            } catch (InputMismatchException e) {
+                System.out.println("Invalid input. Please enter a valid number.");
+                scanner.nextLine(); // clear the invalid input
+            }
+        }
+        return choice;
+    }
+
+    /** Returns 1 for yes or 2 for no, repeating until one of those choices is entered. */
+    public int inputInterviewComing(){
+        int choice = 0;
+        boolean flag = true;
+        while (flag) {
+            try {
+                System.out.println("Are you coming to the interview?");
+                System.out.println("1. Yes");
+                System.out.println("2. No");
+                System.out.print("Enter your choice: ");
+                choice = scanner.nextInt();
+                if (choice < 1 || choice > 2) {
+                    System.out.println("Please enter a valid choice between 1 and 2.");
+                } else {
+                    flag = false;
+                }
+            } catch (InputMismatchException e) {
+                System.out.println("Invalid input. Please enter a valid number.");
+                scanner.nextLine(); // clear the invalid input
+            }
+        }
+        return choice;
+    }
 }

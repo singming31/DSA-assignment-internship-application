@@ -1,69 +1,39 @@
 package dao;
 
-import adt.ArrayList;
-import adt.ListInterface;
-import control.CompanyManager;
-import control.JobManager;
-import entity.JobPosting;
+import adt.*;
+import entity.Company;
 
 public class CompanyInitializer {
+    /**
+     * Creates and returns the sample companies and their associated job postings.
+     * @return creates and returns the sample companies and their associated job postings.
+     */
+    public ListInterface<Company> initializeCompanyList() {
+        ListInterface<Company> companies = new ArrayList<>();
+        JobPostingInitializer jobPostingsinitializer = new JobPostingInitializer();
+        
+        companies.add(new Company("Innovix Technologies", "Kuala Lumpur", jobPostingsinitializer.initializeJobPosting()));
+        companies.add(new Company("PixelWave Creations", "Penang", jobPostingsinitializer.initializeJobPosting()));
+        companies.add(new Company("DataSync Analytics", "Remote", jobPostingsinitializer.initializeJobPosting()));
+        companies.add(new Company("SoftPro Studio", "Johor Bahru",jobPostingsinitializer.initializeJobPosting() ));
+        companies.add(new Company("TestLab Solutions", "Penang", jobPostingsinitializer.initializeJobPosting()));
+        companies.add(new Company("ProdigyWorks", "Kuala Lumpur", jobPostingsinitializer.initializeJobPosting()));
+        companies.add(new Company("DevStream Global", "Cyberjaya", jobPostingsinitializer.initializeJobPosting()));
+        companies.add(new Company("InsightAI", "Remote", jobPostingsinitializer.initializeJobPosting())); // Sharing data-related jobs
+        companies.add(new Company("SecureNet Systems", "Cyberjaya", jobPostingsinitializer.initializeJobPosting()));
+        companies.add(new Company("BizFlow Consulting", "Selangor", jobPostingsinitializer.initializeJobPosting()));
 
-    public static void initialize(CompanyManager companyManager) {
-        // Initialize job postings first
-        JobManager jobManager = new JobManager();
-        JobPostingInitializer.initialize(jobManager);
-        ListInterface<JobPosting> allPostings = jobManager.getJobPostings();
+        return companies;
+    }
 
-        // Create job posting lists for each company
-        ListInterface<JobPosting> techCompanyPostings = new ArrayList<>();
-        ListInterface<JobPosting> creativeCompanyPostings = new ArrayList<>();
-        ListInterface<JobPosting> financeCompanyPostings = new ArrayList<>();
-        ListInterface<JobPosting> supportCompanyPostings = new ArrayList<>();
-        ListInterface<JobPosting> marketingCompanyPostings = new ArrayList<>();
-        ListInterface<JobPosting> cloudCompanyPostings = new ArrayList<>();
-        ListInterface<JobPosting> securityCompanyPostings = new ArrayList<>();
-        ListInterface<JobPosting> digitalCompanyPostings = new ArrayList<>();
-        ListInterface<JobPosting> dataScienceCompanyPostings = new ArrayList<>();
-        ListInterface<JobPosting> remoteCompanyPostings = new ArrayList<>();
-
-        // Simple logic to assign jobs to different companies
-        for (int i = 0; i < allPostings.size(); i++) {
-            JobPosting posting = allPostings.get(i);
-            String title = posting.getTitle().toLowerCase();
-
-            if (title.contains("developer") || title.contains("backend") || title.contains("full stack")) {
-                techCompanyPostings.add(posting);
-            } else if (title.contains("designer") || title.contains("ux") || title.contains("product manager")) {
-                creativeCompanyPostings.add(posting);
-            } else if (title.contains("analyst") || title.contains("scientist")) {
-                financeCompanyPostings.add(posting);
-            } else if (title.contains("support") || title.contains("it")) {
-                supportCompanyPostings.add(posting);
-            } else if (title.contains("marketing")) {
-                marketingCompanyPostings.add(posting);
-            } else if (title.contains("cloud")) {
-                cloudCompanyPostings.add(posting);
-            } else if (title.contains("security")) {
-                securityCompanyPostings.add(posting);
-            } else if (title.contains("digital")) {
-                digitalCompanyPostings.add(posting);
-            } else if (title.contains("data") || title.contains("machine learning")) {
-                dataScienceCompanyPostings.add(posting);
-            } else if (title.contains("remote")) {
-                remoteCompanyPostings.add(posting);
-            }
-        }
-
-        // Register companies with job postings
-        companyManager.registerCompany("Tech Innovators Sdn Bhd", "Kuala Lumpur", techCompanyPostings);
-        companyManager.registerCompany("Creative Minds Studio", "Penang", creativeCompanyPostings);
-        companyManager.registerCompany("Finlytics Global", "Remote", financeCompanyPostings);
-        companyManager.registerCompany("Support Experts Sdn Bhd", "Kuala Lumpur", supportCompanyPostings);
-        companyManager.registerCompany("Creative Digital Solutions", "Penang", marketingCompanyPostings);
-        companyManager.registerCompany("CloudX Technologies", "Cyberjaya", cloudCompanyPostings);
-        companyManager.registerCompany("SecureNet Solutions", "Kuala Lumpur", securityCompanyPostings);
-        companyManager.registerCompany("Digital Surge Co.", "Johor Bahru", digitalCompanyPostings);
-        companyManager.registerCompany("DataX Labs", "Remote", dataScienceCompanyPostings);
-        companyManager.registerCompany("Future Tech Ventures", "Selangor", remoteCompanyPostings);
+    /**
+     * Creates sample data and writes it to the corresponding data file, replacing any existing file.
+     * @param args the args value
+     */
+    public static void main(String[] args) {
+        CompanyInitializer companyInitializer = new CompanyInitializer();
+        ListInterface<Company> companies = companyInitializer.initializeCompanyList();
+        CompanyDAO companyDAO = new CompanyDAO();
+        companyDAO.saveToFile(companies);
     }
 }

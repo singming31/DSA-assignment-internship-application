@@ -7,331 +7,219 @@ import java.util.InputMismatchException;
 import java.util.Scanner;
 
 public class JobPostingUI {
-    private JobManager jobManager;
-    private Scanner input;
+    private Scanner sc = new Scanner(System.in);
 
-    // Constructor
-    public JobPostingUI() {
-        this.jobManager = new JobManager();
-        this.input = new Scanner(System.in);
-    }
-
-    public JobPostingUI(ListInterface<JobPosting> jobs) {
-        this.jobManager = new JobManager();
-        this.input = new Scanner(System.in);
-        jobManager.addJobPosting(jobs);
-    }
-
-    // Main method
-    public static void main(String[] args) {
-        JobPostingUI jobPostingUI = new JobPostingUI();
-        jobPostingUI.run();
-    }
-
-    // Method to run the job posting management system
-    public void run() {
-        int choice;
-        do {
-            displayMenu();
-            choice = getIntInput("Enter your choice: ", 1, 6);
-
-            switch (choice) {
-                case 1:
-                    addJobPosting();
-                    break;
-                case 2:
-                    removeJobPosting();
-                    break;
-                case 3:
-                    updateJobPosting();
-                    break;
-                case 4:
-                    listAllJobPostings();
-                    break;
-                case 5:
-                    searchJobPostings();
-                    break;
-                case 6:
-                    System.out.println("\nExiting Job Posting Management System!");
-                    break;
-                default:
-                    System.out.println("Invalid choice. Please try again.");
-            }
-        } while (choice != 6);
-    }
-
-    // Method to display the menu
-    private void displayMenu() {
-        System.out.println("\n=== JOB POSTING MANAGEMENT SYSTEM ===");
-        System.out.println("1. Add New Job Posting");
-        System.out.println("2. Remove Job Posting");
+    /** Prints the job posting actions. */
+    private void jobPostingMenu() {
+        System.out.println();
+        System.out.println();
+        System.out.println("---------------------");
+        System.out.println("Job Posting Menu");
+        System.out.println("---------------------");
+        System.out.println("1. Add Job Posting");
+        System.out.println("2. View Job Postings");
         System.out.println("3. Update Job Posting");
-        System.out.println("4. List All Job Postings");
-        System.out.println("5. Search Job Postings");
-        System.out.println("6. Exit");
-        System.out.println("=====================================");
+        System.out.println("4. Delete Job Posting");
+        System.out.println("5. Return To Company Menu");
+        System.out.println("6. Change sort order");
     }
 
-    // Method to add a new job posting
-    private void addJobPosting() {
-        clearInputBuffer();
-        System.out.println("\n=== ADD JOB POSTING ===");
-        String title = getStringInput("Enter job title: ");
-        String description = getStringInput("Enter job description: ");
-        String location = getStringInput("Enter job location: ");
-        double[] salaryRange = getSalaryRangeInput();
-        int experienceRequired = getIntInput("Enter required experience in years: ", 0, 50);
-        getSkillRequirements();
-
-        jobManager.addJobPosting(title, description, location, salaryRange, experienceRequired);
-        System.out.println("\n✓ Job posting added successfully!");
-        pressEnterToContinue();
+    /** Prompts for sort direction and returns true for 1 (ascending) or false for 2 (descending). */
+    public boolean inputSortAscending() {
+        return SortUI.inputAscending(sc);
     }
 
-    // Method to remove a job posting
-    private void removeJobPosting() {
-        clearInputBuffer();
-        System.out.println("\n=== REMOVE JOB POSTING ===");
-
-        // Display all job postings with IDs for easier selection
-        displayJobPostingsWithIds();
-
-        String jobId = getStringInput("Enter the ID of the job posting to remove: ");
-        boolean removed = jobManager.removeJobPosting(jobId);
-
-        if (removed) {
-            System.out.println("\n✓ Job posting removed successfully!");
-        } else {
-            System.out.println("\n✗ Job posting not found. Please check the ID and try again.");
-        }
-        pressEnterToContinue();
-    }
-
-    // Method to update a job posting
-    private void updateJobPosting() {
-        clearInputBuffer();
-        System.out.println("\n=== UPDATE JOB POSTING ===");
-
-        // Display all job postings with IDs for easier selection
-        displayJobPostingsWithIds();
-
-        String jobId = getStringInput("Enter the ID of the job posting to update: ");
-
-        if (jobManager.containsJobPosting(jobId)) {
-            updateJob(jobId);
-        } else {
-            System.out.println("\n✗ Job posting not found. Please check the ID and try again.");
-            pressEnterToContinue();
-        }
-    }
-
-    // Method to update a specific job
-    private void updateJob(String jobId) {
-        int choice;
-        do {
-            displayUpdateMenu();
-            choice = getIntInput("Enter your choice: ", 1, 7);
-
-            switch (choice) {
-                case 1:
-                    String title = getStringInput("Enter new job title: ");
-                    jobManager.setJobPostingTitle(jobId, title);
-                    System.out.println("\n✓ Job title updated successfully!");
-                    break;
-                case 2:
-                    String description = getStringInput("Enter new job description: ");
-                    jobManager.setJobPostingDescription(jobId, description);
-                    System.out.println("\n✓ Job description updated successfully!");
-                    break;
-                case 3:
-                    String location = getStringInput("Enter new job location: ");
-                    jobManager.setJobPostingLocation(jobId, location);
-                    System.out.println("\n✓ Job location updated successfully!");
-                    break;
-                case 4:
-                    double[] salaryRange = getSalaryRangeInput();
-                    jobManager.setJobPostingSalaryRange(jobId, salaryRange);
-                    System.out.println("\n✓ Job salary range updated successfully!");
-                    break;
-                case 5:
-                    jobManager.clearSkillRequirements();
-                    getSkillRequirements();
-                    jobManager.setJobPostingRequiredSkills(jobId, jobManager.getSkillRequirements());
-                    System.out.println("\n✓ Job skill requirements updated successfully!");
-                    break;
-                case 6:
-                    int experience = getIntInput("Enter new required experience in years: ", 0, 50);
-                    jobManager.setJobPostingExperienceRequired(jobId, experience);
-                    System.out.println("\n✓ Job experience requirement updated successfully!");
-                    break;
-                case 7:
-                    break;
-                default:
-                    System.out.println("Invalid choice!");
-            }
-
-            if (choice != 7) {
-                pressEnterToContinue();
-            }
-        } while (choice != 7);
-    }
-
-    // Method to display the update menu
-    private void displayUpdateMenu() {
-        System.out.println("\n=== UPDATE JOB DETAILS ===");
-        System.out.println("1. Update Job Title");
-        System.out.println("2. Update Job Description");
-        System.out.println("3. Update Job Location");
-        System.out.println("4. Update Salary Range");
-        System.out.println("5. Update Skill Requirements");
-        System.out.println("6. Update Experience Requirement");
-        System.out.println("7. Done Updating");
-        System.out.println("========================");
-    }
-
-    // Method to list all job postings
-    private void listAllJobPostings() {
-        System.out.println("\n=== ALL JOB POSTINGS ===");
-        ListInterface<JobPosting> jobPostings = jobManager.getJobPostings();
-
-        if (jobPostings.isEmpty()) {
-            System.out.println("No job postings found.");
-        } else {
-            jobManager.displayFormattedJobPostings(jobPostings);
-        }
-        pressEnterToContinue();
-    }
-
-    // Method to search job postings
-    private void searchJobPostings() {
-        clearInputBuffer();
-        System.out.println("\n=== SEARCH JOB POSTINGS ===");
-
-        System.out.println("Search by:");
-        System.out.println("1. Title");
-        System.out.println("2. Location");
-        makeSearchJobs();
-    }
-
-    private ListInterface<JobPosting> makeSearchJobs() {
-        int searchChoice = getIntInput("Enter your choice: ", 1, 2);
-
-        String query = "";
-        boolean byTitle = true;
-
-        if (searchChoice == 1) {
-            query = getStringInput("Enter title to search for: ");
-        } else {
-            query = getStringInput("Enter location to search for: ");
-            byTitle = false;
-        }
-
-        int threshold = getIntInput("Enter fuzzy search threshold (0-5, higher = more matches): ", 0, 5);
-
-        ListInterface<JobPosting> jobs = jobManager.searchJobPostings(query, threshold, byTitle);
-        pressEnterToContinue();
-        return jobs;
-    }
-
-    public ListInterface<JobPosting> FindJobMatch() {
-        searchJobPostings();
-        return makeSearchJobs();
-    }
-
-    // Method to display all job postings with IDs
-    private void displayJobPostingsWithIds() {
-        System.out.println("\nAvailable Job Postings:");
-        System.out.println("-------------------------------------------");
-        jobManager.displayAllJobPosting();
-    }
-
-    // Helper methods for input handling
-    private int getIntInput(String prompt, int min, int max) {
-        int value = 0;
-        boolean valid = false;
-
-        while (!valid) {
-            System.out.print(prompt);
+    /** Displays the job posting menu and returns a choice from 1 to 6; consumes the rest of the line. */
+    public int getMenuChoice() {
+        jobPostingMenu();
+        int choice = 0;
+        boolean flag = true;
+        while (flag) {
             try {
-                value = input.nextInt();
-                if (value >= min && value <= max) {
-                    valid = true;
+                System.out.print("Enter your choice: ");
+                choice = sc.nextInt();
+                if (choice < 1 || choice > 6) {
+                    System.out.println("Please enter a valid choice between 1 and 6.");
                 } else {
-                    System.out.println("Please enter a value between " + min + " and " + max + ".");
+                    flag = false;
                 }
             } catch (InputMismatchException e) {
-                System.out.println("Invalid input. Please enter a number.");
-                input.nextLine(); // Clear invalid input
+                System.out.println("Invalid input. Please enter a valid number.");
+                sc.next(); // clear the invalid input
             }
         }
-
-        return value;
+        sc.nextLine();
+        return choice;
     }
 
-    // Helper method to get user input
-    private String getStringInput(String prompt) {
-        System.out.print(prompt);
-        return input.nextLine().trim();
+    /** Prompts for and returns the title from the next line. */
+    public String inputJobPostingTitle() {
+        System.out.print("Enter Job Posting Title: ");
+        String jobPostingTitle = sc.nextLine();
+        return jobPostingTitle;
     }
 
-    // Helper method to get salary range
-    private double[] getSalaryRangeInput() {
-        double[] salaryRange = new double[2];
-        boolean valid = false;
+    /** Prompts for and returns the description from the next line. */
+    public String inputJobPostingDescription() {
+        System.out.print("Enter Job Posting Description: ");
+        String jobPostingDescription = sc.nextLine();
+        return jobPostingDescription;
+    }
 
-        while (!valid) {
+    /** Reads a non-negative integer, consumes the rest of its line, and returns it. */
+    public int inputJobPostingExperienceRequired() {
+        int jobPostingExperienceRequired = 0;
+        boolean flag = true;
+        while (flag) {
             try {
-                System.out.print("Enter minimum salary: $");
-                salaryRange[0] = Double.parseDouble(input.nextLine());
-
-                System.out.print("Enter maximum salary: $");
-                salaryRange[1] = Double.parseDouble(input.nextLine());
-
-                if (salaryRange[0] < 0 || salaryRange[1] < 0) {
-                    System.out.println("Salaries cannot be negative. Please try again.");
-                } else if (salaryRange[0] > salaryRange[1]) {
-                    System.out.println("Minimum salary cannot be greater than maximum salary. Please try again.");
+                System.out.print("Enter Job Posting Experience Years Required: ");
+                jobPostingExperienceRequired = sc.nextInt();
+                if (jobPostingExperienceRequired < 0) {
+                    System.out.println("Please enter a non-negative number.");
                 } else {
-                    valid = true;
+                    flag = false;
                 }
-            } catch (NumberFormatException e) {
-                System.out.println("Invalid input. Please enter valid numbers.");
+            } catch (InputMismatchException e) {
+                System.out.println("Invalid input. Please enter a valid number.");
+                sc.next(); // clear the invalid input
             }
         }
-
-        return salaryRange;
+        sc.nextLine();
+        return jobPostingExperienceRequired;
     }
 
-    // Method to get skill requirements
-    private void getSkillRequirements() {
-        int numSkills = getIntInput("Enter number of required skills: ", 0, 20);
+    /** Prompts for and returns the location from the next line. */
+    public String inputJobPostingLocation() {
+        System.out.print("Enter Job Posting Location: ");
+        String jobPostingLocation = sc.nextLine();
+        return jobPostingLocation;
+    }
 
-        for (int i = 0; i < numSkills; i++) {
-            System.out.println("\nSkill #" + (i + 1));
-            clearInputBuffer();
-
-            String skillName = getStringInput("Enter skill name: ");
-            int importance = getIntInput("Enter importance (1-10): ", 1, 10);
-
-            jobManager.addSkillRequirement(skillName, importance);
+    /** Reads minimum and maximum values until maximum is at least minimum, then returns them in a two-element array in that order; consumes the rest of the line. */
+    public double[] inputJobPostingSalary() {
+        double jobPostingSalary = 0;
+        double jobPostingMaxSalary = 0;
+        boolean flag = true;
+        while (flag) {
+            try {
+                System.out.print("Enter Job Posting minimum salary: $");
+                jobPostingSalary = sc.nextDouble();
+                System.out.print("Enter Job Posting maximum salary: $");
+                jobPostingMaxSalary = sc.nextDouble();
+                if (jobPostingMaxSalary < jobPostingSalary) {
+                    System.out.println("Please enter a valid number. Minimum salary must be more than maximum salary.");
+                } else {
+                    flag = false;
+                }
+            } catch (InputMismatchException e) {
+                System.out.println("Invalid input. Please enter a valid number.");
+                sc.next(); // clear the invalid input
+            }
         }
+        sc.nextLine();// clear buffer
+        return new double[] { jobPostingSalary, jobPostingMaxSalary };
     }
 
-    // Method to clear input buffer
-    private void clearInputBuffer() {
-        if (input.hasNextLine()) {
-            input.nextLine();
+    /** Reads a value from 1 to 10, consumes the rest of the line, and returns it. */
+    public int inputJobPostingExperienceImportance() {
+        int jobPostingExperienceRequired = 0;
+        boolean flag = true;
+        while (flag) {
+            try {
+                System.out.print("Enter Job Posting Experience Importance Score weight: ");
+                jobPostingExperienceRequired = sc.nextInt();
+                if (jobPostingExperienceRequired < 1 || jobPostingExperienceRequired > 10) {
+                    System.out.println("Please enter a valid number between 1 and 10.");
+                } else {
+                    flag = false;
+                }
+            } catch (InputMismatchException e) {
+                System.out.println("Invalid input. Please enter a valid number.");
+                sc.next(); // clear the invalid input
+            }
         }
+        sc.nextLine();
+        return jobPostingExperienceRequired;
     }
 
-    // Method to press Enter to continue
-    private void pressEnterToContinue() {
-        System.out.print("\nPress Enter to continue...");
-        input.nextLine();
+    /** Reads a value from 1 to 10, consumes the rest of the line, and returns it. */
+    public int inputJobPostingLocationImportance() {
+        int jobPostingLocationImportance = 0;
+        boolean flag = true;
+        while (flag) {
+            try {
+                System.out.print("Enter Job Posting Location Importance: ");
+                jobPostingLocationImportance = sc.nextInt();
+                if (jobPostingLocationImportance < 1 || jobPostingLocationImportance > 10) {
+                    System.out.println("Please enter a valid number between 1 and 10.");
+                } else {
+                    flag = false;
+                }
+            } catch (InputMismatchException e) {
+                System.out.println("Invalid input. Please enter a valid number.");
+                sc.next(); // clear the invalid input
+            }
+        }
+        sc.nextLine();
+        return jobPostingLocationImportance;
     }
 
-    // Getter for jobManager
-    public JobManager getJobManager() {
-        return jobManager;
+    /** Reads a value from 1 to 10, consumes the rest of the line, and returns it. */
+    public int inputJobPostingSkillImportance() {
+        int jobPostingSkillImportance = 0;
+        boolean flag = true;
+        while (flag) {
+            try {
+                System.out.print("Enter Job Posting Skill Importance: ");
+                jobPostingSkillImportance = sc.nextInt();
+                if (jobPostingSkillImportance < 1 || jobPostingSkillImportance > 10) {
+                    System.out.println("Please enter a valid number between 1 and 10.");
+                } else {
+                    flag = false;
+                }
+            } catch (InputMismatchException e) {
+                System.out.println("Invalid input. Please enter a valid number.");
+                sc.next(); // clear the invalid input
+            }
+        }
+        sc.nextLine();
+        return jobPostingSkillImportance;
     }
+
+    /** Prints job posting table headings and the supplied rows. */
+    public void listAllJobPosting(String allJobPosting) {
+        System.out.println("\t---------------------");
+        System.out.println("\tJob Posting List");
+        System.out.println("\t---------------------");
+        System.out.println(
+                "\t+----+----------+----------------------+------------------+---------------+---------------------+--------+--------+--------+----------+\n"
+                        +
+                        "\t| ID | Title    | Description          | Location         | Exp. Required | Salary Range        | ExpImp | LocImp | SkillImp| Skills   |\n"
+                        +
+                        "\t+----+----------+----------------------+------------------+---------------+---------------------+--------+--------+---------+----------+\n");
+        System.out.println(allJobPosting);
+    }
+
+    /** Returns a positive displayed row number as a one-based selection and consumes the rest of the line. */
+    public int inputJobPostingIndex() {
+        int jobPostingIndex = 0;
+        boolean flag = true;
+        while (flag) {
+            try {
+                System.out.print("Enter Job Posting number based on the aligned table: ");
+                jobPostingIndex = sc.nextInt();
+                if (jobPostingIndex < 1) {
+                    System.out.println("Please enter a valid number.");
+                } else {
+                    flag = false;
+                }
+            } catch (InputMismatchException e) {
+                System.out.println("Invalid input. Please enter a valid number.");
+                sc.next(); // clear the invalid input
+            }
+        }
+        sc.nextLine();
+        return jobPostingIndex;
+    }
+
 }

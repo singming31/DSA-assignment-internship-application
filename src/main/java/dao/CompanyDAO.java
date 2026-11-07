@@ -8,49 +8,47 @@ import java.io.*;
 
 public class CompanyDAO {
 
-    private static final String FILE_NAME = "company.txt";
+    private String fileName = "Company.dat"; // For security and maintainability, should not have filename hardcoded
+                                              // here.
 
-    // Save all companies to file
-    public static void saveCompanies(CompanyManager companyManager) {
-        try (PrintWriter writer = new PrintWriter(new FileWriter(FILE_NAME))) {
-            ListInterface<Company> companies = companyManager.getCompanies();
-
-            for (int i = 0; i < companies.size(); i++) {
-                Company c = companies.get(i);
-                writer.println(c.getId() + ";" + c.getName() + ";" + c.getLocation());
-                // You could also write jobPosting count or IDs here
-            }
-        } catch (IOException e) {
-            System.err.println("Error saving companies: " + e.getMessage());
+    /**
+     * Writes the serialized list directly to the data file, replacing it; I/O errors are printed and no success value is returned.
+     * @param companyList the companyList value
+     */
+    public void saveToFile(ListInterface<Company> companyList) {
+        File file = new File(fileName);
+        try {
+            ObjectOutputStream ooStream = new ObjectOutputStream(new FileOutputStream(file));
+            ooStream.writeObject(companyList);
+            ooStream.close();
+        } catch (FileNotFoundException ex) {
+            System.out.println("\nFile not found");
+        } catch (IOException ex) {
+            System.out.println("\nCannot save to file");
         }
     }
 
-    // Load companies from file
-    public static void loadCompanies(CompanyManager companyManager) {
-        try (BufferedReader reader = new BufferedReader(new FileReader(FILE_NAME))) {
-            String line;
+        /**
+     * Loads and returns the serialized list, or an empty list when loading fails.
+     * @return loads and returns the serialized list, or an empty list when loading fails.
+     */
 
-            while ((line = reader.readLine()) != null) {
-                if (line.trim().isEmpty()) continue; // skip empty lines
-            
-                String[] parts = line.split(";");
-                if (parts.length >= 3) {
-                    String id = parts[0].trim();
-                    String name = parts[1].trim();
-                    String location = parts[2].trim();
-            
-                    Company company = new Company(name, location, new ArrayList<>());
-                    company.setId(id); // explicitly set the ID if needed
-                    companyManager.registerCompany(company);
-                } else {
-                    System.err.println("Invalid line in company.txt: " + line);
-                }
-            }
-            
-        } catch (FileNotFoundException e) {
-            System.out.println("company.txt not found, skipping load.");
-        } catch (IOException e) {
-            System.err.println("Error loading companies: " + e.getMessage());
+    @SuppressWarnings({ "unchecked", "finally" })
+    public ListInterface<Company> retrieveFromFile() {
+        File file = new File(fileName);
+        ListInterface<Company> companyList = new ArrayList<>();
+        try {
+            ObjectInputStream oiStream = new ObjectInputStream(new FileInputStream(file));
+            companyList = (ArrayList<Company>) (oiStream.readObject());
+            oiStream.close();
+        } catch (FileNotFoundException ex) {
+            System.out.println("\nNo such file.");
+        } catch (IOException ex) {
+            System.out.println("\nCannot read from file.");
+        } catch (ClassNotFoundException ex) {
+            System.out.println("\nClass not found.");
+        } finally {
+            return companyList;
         }
     }
 }
